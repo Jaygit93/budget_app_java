@@ -7,6 +7,8 @@ L'application utilise le format US pour les décimales (le point comme séparate
 
 Ce gestionnaire de budget permet de suivre ses finances personnelles en enregistrant toutes les opérations financières (recettes et dépenses) avec un système de catégorisation et de recherche.
 
+L'application utilise maintenant la programmation orientée objet (POO) avec l'encapsulation des données dans la classe `Operation.
+
 ## Fonctionnalités principales
 
 - Ajout d'opérations (recettes/dépenses) avec montant, catégorie et libellé
@@ -16,11 +18,11 @@ Ce gestionnaire de budget permet de suivre ses finances personnelles en enregist
 - Recherche textuelle dans les libellés
 
 ## Structure du projet (arborescence)
-
 ```
 BudgetApp/
 ├── BudgetApp.java      # Classe principale avec la logique métier
-├── Saisie.java         # Utilitaires de saisie sécurisée
+├── Operation.java      # Classe métier représentant une opération (POO)
+├── Saisie.java         # Utilitaires de saisie
 ├── TypeOperation.java  # Enum (RECETTE/DEPENSE)
 └── Categorie.java      # Enum (catégories d'opérations)
 ```

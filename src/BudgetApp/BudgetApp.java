@@ -5,13 +5,10 @@ import java.util.Scanner;
 
 public class BudgetApp {
 
-    static final int MAX = 100;
-    static TypeOperation[] types = new TypeOperation[MAX];
-    static double[] montants = new double[MAX];
-    static Categorie[] categories = new Categorie[MAX];
-    static String[] libelles = new String[MAX];
-    static int nbOps = 0;
-    static Scanner sc = new Scanner(System.in).useLocale(Locale.US);
+    private static final int MAX = 100;
+    private static Operation[] operations = new Operation[MAX];
+    private static int nbOps = 0;
+    private static Scanner sc = new Scanner(System.in).useLocale(Locale.US);
 
     public static void main(String[] args) {
         int choix;
@@ -20,6 +17,9 @@ public class BudgetApp {
             choix = Saisie.lireEntier(sc);
 
             switch (choix) {
+                case 0:
+                    System.out.println("Au revoir !");
+                    break;
                 case 1:
                     ajouterOperation();
                     break;
@@ -35,17 +35,14 @@ public class BudgetApp {
                 case 5:
                     rechercher();
                     break;
-                case 0:
-                    System.out.println("Au revoir");
-                    break;
                 default: System.out.println("Choix invalide.");
             }
         } while (choix != 0);
         sc.close();
     }
 
-    static void afficherMenu() {
-        System.out.println("\n== GESTIONNAIRE BUDGET ==");
+    private static void afficherMenu() {
+        System.out.println("\n======== GESTIONNAIRE BUDGET ============");
         System.out.println("1. Ajouter une operation");
         System.out.println("2. Afficher le bilan");
         System.out.println("3. Afficher l'historique");
@@ -57,10 +54,10 @@ public class BudgetApp {
         System.out.print("Votre choix : ");
     }
 
-    static void ajouterOperation() {
+
+    private static void ajouterOperation() {
         if (nbOps >= MAX) {
             System.out.println("Tableau plein !");
-            return;
         }
 
         System.out.println("\n-> Nouvelle operation");
@@ -71,9 +68,9 @@ public class BudgetApp {
             System.out.print("1 ou 2 : ");
             t = Saisie.lireEntier(sc);
         }
-        types[nbOps] = (t == 1) ? TypeOperation.RECETTE : TypeOperation.DEPENSE;
+        TypeOperation types = (t == 1) ? TypeOperation.RECETTE : TypeOperation.DEPENSE;
 
-        montants[nbOps] = Saisie.lireMontant(sc);
+        double montants = Saisie.lireMontant(sc);
 
         System.out.println("Categorie :");
         Categorie[] cats = Categorie.values();
@@ -84,65 +81,64 @@ public class BudgetApp {
         do {
             c = Saisie.lireEntier(sc);
         } while (c < 1 || c > cats.length);
-        categories[nbOps] = cats[c - 1];
+        Categorie categories = cats[c - 1];
 
         sc.nextLine();
         System.out.print("Libelle (3-40 caracteres) : ");
-        libelles[nbOps] = Saisie.lireLibelle(sc, 3, 40);
+        String libelles = Saisie.lireLibelle(sc, 3, 40);
 
+        operations[nbOps] = new Operation(types, montants, categories, libelles);
         nbOps++;
         System.out.println("Operation enregistrée !");
     }
 
-    static void afficherBilan() {
+
+    private static void afficherBilan() {
         if (nbOps == 0) {
             System.out.println("Aucune operation.");
-            return;
         }
 
         double recettes = 0;
         double depenses = 0;
-        double minimum = montants[0];
-        double maximum = montants[0];
+        double minimum = operations[0].getMontant();
+        double maximum = operations[0].getMontant();
+
         for (int i = 0; i < nbOps; i++) {
-            if (types[i] == TypeOperation.RECETTE) {
-                recettes += montants[i];
+            double m = operations[i].getMontant();
+            if (operations[i].getType() == TypeOperation.RECETTE) {
+                recettes += m;
+            } else {
+                depenses += m;
             }
-            else {
-                depenses += montants[i];
-            }
-            if (montants[i] < minimum) {
-                minimum = montants[i];
-            }
-            if (montants[i] > maximum) {
-                maximum = montants[i];
-            }
+            if (m < minimum) minimum = m;
+            if (m > maximum) maximum = m;
         }
 
         double solde = recettes - depenses;
         double moyenne = (recettes + depenses) / nbOps;
 
-        System.out.println("\n===== BILAN =====");
-        System.out.println("Total Recettes : " + recettes + "€");
-        System.out.println("Total Dépenses : " + depenses + "€");
-        System.out.println("Solde Actuel   : " + solde + "€");
-        System.out.println("Moyenne        : " + moyenne + "€");
-        System.out.println("Min/Max        : " + minimum + " / " + maximum + "€");
+        System.out.println("\n===== BILAN ======");
+        System.out.println("Total Recettes : " + recettes + " euros");
+        System.out.println("Total Depenses : " + depenses + " euros");
+        System.out.println("Solde Actuel   : " + solde + " euros");
+        System.out.println("Moyenne        : " + moyenne + " euros");
+        System.out.println("Min/Max        : " + minimum + " / " + maximum + " euros");
         System.out.println(solde < 0 ? "[ALERTE] Solde negatif !" : "Bravo, compte sain.");
     }
 
-    static void afficherHistorique() {
+
+    private static void afficherHistorique() {
         if (nbOps == 0) {
             System.out.println("Aucune operation.");
-            return;
         }
         System.out.println("\n===== HISTORIQUE =====");
         for (int i = 0; i < nbOps; i++) {
-            afficherLigne(i);
+            operations[i].afficherLigne(i);
         }
     }
 
-    static void filtrerHistorique() {
+
+    private static void filtrerHistorique() {
         System.out.println("Filtrer par : 1.Type  2.Categorie");
         int choix = Saisie.lireEntier(sc);
 
@@ -153,8 +149,8 @@ public class BudgetApp {
             System.out.println("\n===== FILTRE TYPE =====");
             int nb = 0;
             for (int i = 0; i < nbOps; i++) {
-                if (types[i] == tf) {
-                    afficherLigne(i);
+                if (operations[i].getType() == tf) {
+                    operations[i].afficherLigne(i);
                     nb++;
                 }
             }
@@ -168,8 +164,8 @@ public class BudgetApp {
             System.out.println("\n===== FILTRE CATEGORIE =====");
             int nb = 0;
             for (int i = 0; i < nbOps; i++) {
-                if (categories[i] == cats[c - 1]) {
-                    afficherLigne(i);
+                if (operations[i].getCategorie() == cats[c - 1]) {
+                    operations[i].afficherLigne(i);
                     nb++;
                 }
             }
@@ -177,22 +173,19 @@ public class BudgetApp {
         }
     }
 
-    static void rechercher() {
+
+    private static void rechercher() {
         sc.nextLine();
         System.out.print("Mot-cle (minimum 3 caractères.) : ");
         String mot = Saisie.lireLibelle(sc, 3, 100);
-        System.out.println("\n===== RECHERCHE '" + mot + "' ================");
+        System.out.println("\n===== RECHERCHE : '" + mot + "' =================");
         int nb = 0;
         for (int i = 0; i < nbOps; i++) {
-            if (libelles[i].toLowerCase().contains(mot.toLowerCase())) {
-                afficherLigne(i);
+            if (operations[i].contient(mot)) {
+                operations[i].afficherLigne(i);
                 nb++;
             }
         }
         System.out.println("Résultat : " + nb);
-    }
-
-    static void afficherLigne(int i) {
-        System.out.println("["+(i+1)+"] " + "| " + " | "+types[i] + " | "+ categories[i] + " | " + libelles[i] + " |  "+montants[i]+"€");
     }
 }
